@@ -8,6 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install MIPS cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mips-linux-gnu g++-mips-linux-gnu
+      
       - name: Create cargo config
         run: |
           mkdir -p .cargo
@@ -24,6 +29,7 @@ jobs:
         run: |
           docker run --rm \
             -v "$(pwd)":/workspace \
+            -v /usr/bin/mips-linux-gnu-gcc:/usr/bin/mips-linux-gnu-gcc:ro \
             -w /workspace \
             messense/rust-musl-cross:mips-musl \
             cargo build --release --target=mips-unknown-linux-musl
