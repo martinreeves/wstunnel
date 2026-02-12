@@ -1,0 +1,35 @@
+name: Build MIPS
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create cargo config
+        run: |
+          mkdir -p .cargo
+          cat > .cargo/config.toml << 'EOF'
+          [target.mips-unknown-linux-musl]
+          linker = "mips-linux-gnu-gcc"
+          
+          [profile.release]
+          panic = "unwind"
+          lto = false
+          EOF
+      
+      - name: Build
+        run: |
+          docker run --rm \
+            -v "$(pwd)":/workspace \
+            -w /workspace \
+            messense/rust-musl-cross:mips-musl \
+            cargo build --release --target=mips-unknown-linux-musl
+      
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: wstunnel-mips
+          path: target/mips-unknown-linux-musl/release/wstunnel
